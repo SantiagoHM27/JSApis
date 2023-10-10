@@ -1,60 +1,77 @@
-const URL = "https://rickandmortyapi.com/api/";
+import { createCard, createPagination } from "./ui.js"; 
 
-function getCharacters(page=1) {
-    fetch(`${ URL }character/?page=${ page }`)
-        .then(response => response.json())
-        .then(data => {
-            console.log(data.info);
-        //console.log(data.results);
-        data.results.forEach(personaje => {
-            console.log(personaje.name);
-        });
-        showCharacters(data.results);
-    })
+const pagination= document.querySelector('.pagination');
+const URL ="https://rickandmortyapi.com/api/";
+
+
+createPagination();
+
+async function requestFetch(url){
+    return fetch(url)
+    .then(response => response.json())
+    .then(data =>data)
     .catch(error => console.log(error))
+} 
 
+ async function getCharacters(page = 1){
+    // requestFetch(`${ URL }character/?page=${ page }`)
+    //    .then(data=> {
+    //    showCharacter(data.results);
+    //})
+    const data = await requestFetch(`${ URL }character/?page=${ page }`);
+    showCharacters(data.results);
 }
 
-function showCharacters(personajes) {
-    const contenedor = document.querySelector('.characters');
-    contenedor.innerHTML = '';
-    personajes.forEach(personaje =>{
-        contenedor.appendChild(createCard(personaje));
+function getCharactersById(id, titleModal, bodyModal){
+    requestFetch(`${ URL }character/${ id }`)
+    .then(data=> {
+        titleModal.innerHTML=data.name
+        let htmlBody = `
+        <img src="${data.image}">
+        <p>${data.species}</p> 
+        <p>${data.origin.name}</p> 
+        `;
+        htmlBody +=data.status=== 'Alive'?
+        `<p><span class="badge bg-success">Live</span></p>`:
+        `<p><span class="badge bg-danger">${data.status}</span></p>`;
+        bodyModal.innerHTML= htmlBody;
+     })
+}
+
+function showCharacters(personajes){
+    const contenedor= document.querySelector('.characters');
+    contenedor.innerHTML='';
+    personajes.forEach(personajes => {
+        contenedor.appendChild(createCard(personajes));
     })
-    
-}    
-
-function createCard(personaje) {
-    const card = document.createElement('div');
-    card.classList.add('card', 'mb-3');
-    card.style.width = '18rem';
-    let contentCard = `  
-    <img src="${ personaje.image }" class="card-img-top" alt="...">
-    <div class="card-body">
-      <h5 class="card-title">${ personaje.name }</h5>
-      <p class="card-text">${ personaje.status }</p>
-      <p class="card-text">${ personaje.gender }</p>
-      <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-id="${ personaje.id }">Ver más</a>
-    </div>`
-    card.innerHTML = contentCard;
-    return card;
 }
+
+function buttonAction(e){
+    e.preventDefault()
+    if(e.target.classList.contains('page-link')){
+        const page = e.target.getAttribute('data-id');
+        getCharacters(page);
+    }
+}
+
 
 function getButtonCard(e){
     e.preventDefault();
     if(e.target.classList.contains('btn')){
-        const titleModal =  document.querySelector('.modal-title');
-        const bodyModal = document.querySelector('.modal-body');
-        titleModal.innerHTML = 'Pending.....'
-        bodyModal.innerHTML = '<i class="fa fa-refresh fa-spin fa-4x"></i>'
+        const titleModal=document.querySelector('.modal-title');
+        const bodyModal= document.querySelector('.modal-body');
+    
+        titleModal.InnerHTML ='pending...';
+        bodyModal.innerHTML='<i class="fa fa-refresh fa-spin fa-4x"></i>'
+        const id =e.target.getAttribute('data-id');
+        getCharactersById(id, titleModal, bodyModal);
+
     }
 }
 
-function buttonAction(e) {
-    e.preventDefault()
-    const page = prompt('Número de página a obtener');
-    getCharacters(page);
-}
+pagination.innerHTML = createPagination();
 
-btnGetChar.addEventListener('click', buttonAction);
-document.querySelector('.characters').addEventListener('click', getButtonCard);
+getCharacters();
+
+pagination.addEventListener('click', buttonAction);
+document.querySelector('.characters').addEventListener('click',getButtonCard)
