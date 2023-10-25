@@ -34,13 +34,12 @@ setInterval(() => {
     vampire.y = posy;
     vampire.pinta();
     comida.forEach(blood => {
-        if(posx == blood.x && posy == blood.y){
+        if(posx === blood.x && posy === blood.y){
             blood.live = false;
         }
-        if(blood.live)
+        if (blood.live)
              blood.pinta()
-    
-    });
+            });
     switch(direction){
         case 1:
             posx++;
